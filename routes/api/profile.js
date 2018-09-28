@@ -69,8 +69,10 @@ router.post(
     if (req.body.githubusername)
       profileFields.githubusername = req.body.githubusername;
     //Skills - Split into array
-    if (typeof req.body.skill !== "undefined") {
-      profileFields.skills = req.body.skills.split(",");
+    if (typeof req.body.skills !== "undefined") {
+      profileFields.skills = req.body.skills
+        .split(",")
+        .map(skill => skill.trim());
     }
 
     // Social
@@ -90,8 +92,8 @@ router.post(
           { $set: profileFields },
           { new: true }
         )
-          .then(profile => res.json(profile))
-          .catch(err => console.log(err));
+          .then(profile => res.status(200).json(profile))
+          .catch(err => res.status(400).json(err));
       } else {
         //Create
         // Check if handle exists
@@ -103,13 +105,11 @@ router.post(
             }
 
             // Save profile
-
             new Profile(profileFields)
               .save()
-              .then(profile => res.json(profile))
-              .catch(err => console.log(err));
+              .then(profile => res.json(profile));
           })
-          .catch(err => console.log(err));
+          .catch(err => res.status(400).json(err));
       }
     });
   }
@@ -232,7 +232,7 @@ router.post(
       const newEdu = {
         school: req.body.school,
         degree: req.body.degree,
-        fieldOfStudy: req.body.fieldOfStudy,
+        fieldofstudy: req.body.fieldofstudy,
         from: req.body.from,
         to: req.body.to,
         current: req.body.current,

@@ -5,7 +5,7 @@ const Schema = mongoose.Schema;
 const profileSchema = new Schema({
   user: {
     type: Schema.Types.ObjectId, //associate user by its Id
-    ref: "uers"
+    ref: "users"
   },
   handle: {
     type: String,
@@ -21,7 +21,7 @@ const profileSchema = new Schema({
   location: {
     type: String
   },
-  Status: {
+  status: {
     type: String,
     required: true
   },
