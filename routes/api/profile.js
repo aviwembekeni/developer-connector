@@ -201,7 +201,7 @@ router.post(
         from: req.body.from,
         to: req.body.to,
         current: req.body.current,
-        descreption: req.body.descreption
+        description: req.body.description
       };
 
       //Add to exp array
