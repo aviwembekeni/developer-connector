@@ -1,156 +1,100 @@
-import React, { Component } from "react";
-import axios from "axios";
-import classnames from "classnames";
-import PropTypes from "prop-types";
-import { withRouter } from "react-router-dom";
-import { connect } from "react-redux";
-import { registerUser } from "../../actions/authActions";
+import React, { useState } from 'react';
+import { connect } from 'react-redux';
+import { Link, Navigate } from 'react-router-dom';
+import { setAlert } from '../../actions/alert';
+import { register } from '../../actions/auth';
+import PropTypes from 'prop-types';
 
-class Register extends Component {
-  constructor() {
-    super();
-    this.state = {
-      name: "",
-      email: "",
-      password: "",
-      password2: "",
-      errors: {}
-    };
-  }
+const Register = ({ setAlert, register, isAuthenticated }) => {
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    password: '',
+    password2: ''
+  });
 
-  componentDidMount() {
-    if (this.props.auth.isAuthenticated) {
-      this.props.history.push("/dashboard");
-    }
-  }
+  const { name, email, password, password2 } = formData;
 
-  componentWillReceiveProps(nextProps) {
-    if (nextProps.errors) {
-      this.setState({ errors: nextProps.errors });
-    }
-  }
+  const onChange = (e) =>
+    setFormData({ ...formData, [e.target.name]: e.target.value });
 
-  onChange = e => {
-    this.setState({ [e.target.name]: e.target.value });
-  };
-
-  onSubmit = e => {
+  const onSubmit = async (e) => {
     e.preventDefault();
-    const newUser = {
-      name: this.state.name,
-      email: this.state.email,
-      password: this.state.password,
-      password2: this.state.password2
-    };
-
-    this.props.registerUser(newUser, this.props.history);
-
-    /*axios
-      .post("/api/users/register", newUser)
-      .then(response => console.log(response.data))
-      .catch(err => this.setState({ errors: err.response.data }));*/
+    if (password !== password2) {
+      setAlert('Passwords do not match', 'danger');
+    } else {
+      register({ name, email, password });
+    }
   };
-  render() {
-    const { errors } = this.state;
 
-    return (
-      <div className="register">
-        <div className="container">
-          <div className="row">
-            <div className="col-md-8 m-auto">
-              <h1 className="display-4 text-center">Sign Up</h1>
-              <p className="lead text-center">
-                Create your DevConnector account
-              </p>
-              <form noValidate onSubmit={this.onSubmit}>
-                <div className="form-group">
-                  <input
-                    type="text"
-                    className={classnames("form-control form-control-lg", {
-                      "is-invalid": errors.name
-                    })}
-                    placeholder="Name"
-                    name="name"
-                    value={this.state.name}
-                    onChange={this.onChange}
-                  />
-                  {errors.name && (
-                    <div className="invalid-feedback">{errors.name}</div>
-                  )}
-                </div>
-                <div className="form-group">
-                  <input
-                    type="email"
-                    className={classnames("form-control form-control-lg", {
-                      "is-invalid": errors.email
-                    })}
-                    placeholder="Email Address"
-                    name="email"
-                    value={this.state.email}
-                    onChange={this.onChange}
-                  />
-                  {errors.email && (
-                    <div className="invalid-feedback">{errors.email}</div>
-                  )}
-                  <small className="form-text text-muted">
-                    This site uses Gravatar so if you want a profile image, use
-                    a Gravatar email
-                  </small>
-                </div>
-                <div className="form-group">
-                  <input
-                    type="password"
-                    className={classnames("form-control form-control-lg", {
-                      "is-invalid": errors.password
-                    })}
-                    placeholder="Password"
-                    value={this.state.password}
-                    name="password"
-                    value={this.state.password}
-                    onChange={this.onChange}
-                  />
-                  {errors.password && (
-                    <div className="invalid-feedback">{errors.password}</div>
-                  )}
-                </div>
-                <div className="form-group">
-                  <input
-                    type="password"
-                    className={classnames("form-control form-control-lg", {
-                      "is-invalid": errors.password2
-                    })}
-                    placeholder="Confirm Password"
-                    value={this.state.password2}
-                    name="password2"
-                    value={this.state.password2}
-                    onChange={this.onChange}
-                  />
-                  {errors.password2 && (
-                    <div className="invalid-feedback">{errors.password2}</div>
-                  )}
-                </div>
-                <input type="submit" className="btn btn-info btn-block mt-4" />
-              </form>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
+  if (isAuthenticated) {
+    return <Navigate to="/dashboard" />;
   }
-}
 
-Register.propTypes = {
-  registerUser: PropTypes.func.isRequired,
-  auth: PropTypes.object.isRequired,
-  errors: PropTypes.object.isRequired
+  return (
+    <section className="container">
+      <h1 className="large text-primary">Sign Up</h1>
+      <p className="lead">
+        <i className="fas fa-user" /> Create Your Account
+      </p>
+      <form className="form" onSubmit={onSubmit}>
+        <div className="form-group">
+          <input
+            type="text"
+            placeholder="Name"
+            name="name"
+            value={name}
+            onChange={onChange}
+          />
+        </div>
+        <div className="form-group">
+          <input
+            type="email"
+            placeholder="Email Address"
+            name="email"
+            value={email}
+            onChange={onChange}
+          />
+          <small className="form-text">
+            This site uses Gravatar so if you want a profile image, use a
+            Gravatar email
+          </small>
+        </div>
+        <div className="form-group">
+          <input
+            type="password"
+            placeholder="Password"
+            name="password"
+            value={password}
+            onChange={onChange}
+          />
+        </div>
+        <div className="form-group">
+          <input
+            type="password"
+            placeholder="Confirm Password"
+            name="password2"
+            value={password2}
+            onChange={onChange}
+          />
+        </div>
+        <input type="submit" className="btn btn-primary" value="Register" />
+      </form>
+      <p className="my-1">
+        Already have an account? <Link to="/login">Sign In</Link>
+      </p>
+    </section>
+  );
 };
 
-const mapStateToProps = state => ({
-  auth: state.auth,
-  errors: state.errors
+Register.propTypes = {
+  setAlert: PropTypes.func.isRequired,
+  register: PropTypes.func.isRequired,
+  isAuthenticated: PropTypes.bool
+};
+
+const mapStateToProps = (state) => ({
+  isAuthenticated: state.auth.isAuthenticated
 });
 
-export default connect(
-  mapStateToProps,
-  { registerUser }
-)(withRouter(Register));
+export default connect(mapStateToProps, { setAlert, register })(Register);

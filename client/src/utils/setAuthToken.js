@@ -1,12 +1,14 @@
-import axios from 'axios';
+import api from './api';
 
-const setAuthToken = token => {
+// store our JWT in LS and set axios headers if we do have a token
+
+const setAuthToken = (token) => {
   if (token) {
-    // Apply to every request
-    axios.defaults.headers.common['Authorization'] = token;
+    api.defaults.headers.common['x-auth-token'] = token;
+    localStorage.setItem('token', token);
   } else {
-    // Delete auth header
-    delete axios.defaults.headers.common['Authorization'];
+    delete api.defaults.headers.common['x-auth-token'];
+    localStorage.removeItem('token');
   }
 };
 

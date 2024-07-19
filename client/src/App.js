@@ -1,112 +1,85 @@
-import React, { Component } from "react";
-import { BrowserRouter as Router, Route, Switch } from "react-router-dom";
-import jwt_decode from "jwt-decode";
-import setAuthToken from "./utils/setAuthToken";
-import { setCurrentUser, logoutUser } from "./actions/authActions";
-import { clearCurrentProfile } from "./actions/profileActions";
+import React, { useEffect } from 'react';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import Navbar from './components/layout/Navbar';
+import Landing from './components/layout/Landing';
+import Register from './components/auth/Register';
+import Login from './components/auth/Login';
+import Alert from './components/layout/Alert';
+import Dashboard from './components/dashboard/Dashboard';
+import ProfileForm from './components/profile-forms/ProfileForm';
+import AddExperience from './components/profile-forms/AddExperience';
+import AddEducation from './components/profile-forms/AddEducation';
+import Profiles from './components/profiles/Profiles';
+import Profile from './components/profile/Profile';
+import Posts from './components/posts/Posts';
+import Post from './components/post/Post';
+import NotFound from './components/layout/NotFound';
+import PrivateRoute from './components/routing/PrivateRoute';
+import { LOGOUT } from './actions/types';
 
-import { Provider } from "react-redux";
-import store from "./store";
+// Redux
+import { Provider } from 'react-redux';
+import store from './store';
+import { loadUser } from './actions/auth';
+import setAuthToken from './utils/setAuthToken';
 
-import PrivateRoute from "./components/common/PrivateRoute";
+import './App.css';
 
-import Navbar from "./components/layout/Navbar";
-import Footer from "./components/layout/Footer";
-import Landing from "./components/layout/Landing";
-import Register from "./components/auth/Register";
-import "./App.css";
-import Login from "./components/auth/Login";
-import Dashboard from "./components/dashboard/Dashboard";
-import CreateProfile from "./components/create-profile/CreateProfile";
-import EditProfile from "./components/edit-profile/EditProfile";
-import AddExperience from "./components/add-credentials/AddExperience";
-import AddEducation from "./components/add-credentials/AddEducation";
-import Profiles from "./components/profiles/Profiles";
-import Profile from "./components/profile/Profile";
-import Posts from "./components/posts/Posts";
-import Post from "./components/post/Post";
+const App = () => {
+  useEffect(() => {
+    // check for token in LS when app first runs
+    if (localStorage.token) {
+      // if there is a token set axios headers for all requests
+      setAuthToken(localStorage.token);
+    }
+    // try to fetch a user, if no token or invalid token we
+    // will get a 401 response from our API
+    store.dispatch(loadUser());
 
-import NotFound from "./components/not-found/NotFound";
+    // log user out from all tabs if they log out in one tab
+    window.addEventListener('storage', () => {
+      if (!localStorage.token) store.dispatch({ type: LOGOUT });
+    });
+  }, []);
 
-// Check for token
-if (localStorage.jwtToken) {
-  // Set auth token header auth
-  setAuthToken(localStorage.jwtToken);
-  // Decode token and get user info and exp
-  const decoded = jwt_decode(localStorage.jwtToken);
-  // Set user and isAuthenticated
-  store.dispatch(setCurrentUser(decoded));
-
-  // Check for expired token
-  const currentTime = Date.now() / 1000;
-  if (decoded.exp < currentTime) {
-    // Logout user
-    store.dispatch(logoutUser());
-    // TODO: Clear current Profile
-    store.dispatch(clearCurrentProfile());
-    // Redirect to login
-    window.location.href = "/login";
-  }
-}
-
-class App extends Component {
-  render() {
-    return (
-      <Provider store={store}>
-        <Router>
-          <div className="App">
-            <Navbar />
-            <Route exact path="/" component={Landing} />
-            <div className="container">
-              <Route exact path="/register" component={Register} />
-              <Route exact path="/login" component={Login} />
-              <Route exact path="/profiles" component={Profiles} />
-              <Route exact path="/profile/:handle" component={Profile} />
-              <Switch>
-                <PrivateRoute exact path="/dashboard" component={Dashboard} />
-              </Switch>
-              <Switch>
-                <PrivateRoute
-                  exact
-                  path="/create-profile"
-                  component={CreateProfile}
-                />
-              </Switch>
-              <Switch>
-                <PrivateRoute
-                  exact
-                  path="/edit-profile"
-                  component={EditProfile}
-                />
-              </Switch>
-              <Switch>
-                <PrivateRoute
-                  exact
-                  path="/add-experience"
-                  component={AddExperience}
-                />
-              </Switch>
-              <Switch>
-                <PrivateRoute
-                  exact
-                  path="/add-education"
-                  component={AddEducation}
-                />
-              </Switch>
-              <Switch>
-                <PrivateRoute exact path="/feed" component={Posts} />
-              </Switch>
-              <Switch>
-                <PrivateRoute exact path="/post/:id" component={Post} />
-              </Switch>
-              <Route exact path="/not-found" component={NotFound} />
-            </div>
-            <Footer />
-          </div>
-        </Router>
-      </Provider>
-    );
-  }
-}
+  return (
+    <Provider store={store}>
+      <Router>
+        <Navbar />
+        <Alert />
+        <Routes>
+          <Route path="/" element={<Landing />} />
+          <Route path="register" element={<Register />} />
+          <Route path="login" element={<Login />} />
+          <Route path="profiles" element={<Profiles />} />
+          <Route path="profile/:id" element={<Profile />} />
+          <Route
+            path="dashboard"
+            element={<PrivateRoute component={Dashboard} />}
+          />
+          <Route
+            path="create-profile"
+            element={<PrivateRoute component={ProfileForm} />}
+          />
+          <Route
+            path="edit-profile"
+            element={<PrivateRoute component={ProfileForm} />}
+          />
+          <Route
+            path="add-experience"
+            element={<PrivateRoute component={AddExperience} />}
+          />
+          <Route
+            path="add-education"
+            element={<PrivateRoute component={AddEducation} />}
+          />
+          <Route path="posts" element={<PrivateRoute component={Posts} />} />
+          <Route path="posts/:id" element={<PrivateRoute component={Post} />} />
+          <Route path="/*" element={<NotFound />} />
+        </Routes>
+      </Router>
+    </Provider>
+  );
+};
 
 export default App;
